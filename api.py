@@ -1,6 +1,5 @@
 import requests
-
-from books
+from books import Book
 
 class BooksAPI:
     """
@@ -40,5 +39,28 @@ class BooksAPI:
             books = []
             if "items" in data:
                 for item in data["items"]:
-                    title_info = item.get("volume")
+                    volume_info= item.get("volumenInfo", {})
                     title = volume_info.get("title", "N/A")
+                    authors = volume_info.get
+                    published_date = volume_info.get("publishedDate", "N/A")
+
+                    book = Book(
+                        title = title,
+                        authors = authors,
+                        published_date = published_date
+                    )
+
+                    books.append(book)
+            return books
+        except requests.exceptions.ConnectionError as e:
+            print(f"Network Error: Try connecting to internet. {e}")
+            return []
+        except requests.exceptions.Timeout as e:
+            print(f"Timeout Error: Request to Google Books API timed out. {e}")
+            return []
+        except requests.exceptions.RequestException as e:
+            print(f"An unexpected error occurred during the API request: {e}")
+            return []
+        except ValueError as e:
+            print(f"Error parsing JSON response from API: {e}")
+            return []
