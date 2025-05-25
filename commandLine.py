@@ -23,7 +23,7 @@ class CLI:
         Runs the main application loop, displaying the main menu.
         """
         while True:
-            self.console.print(Panel("[bold yellow]Mini Book Search CLI Tool[/bold yellow]", title_align="center", style="bold green"))
+            self.console.print(Panel("[bold yellow]Enoch's Mini Book Search CLI Tool[/bold yellow]", title_align="center", style="bold green"))
             self.console.print("[1] Search for books")
             self.console.print("[2] View saved books")
             self.console.print("[3] Exit")
@@ -57,7 +57,7 @@ class CLI:
         max_results_per_page = 5
 
         while True:
-            results = self.api.search_books(query, max_results=max_results_per_page, start_index=start_index)
+            results = self.api.search_book(query, top_results=max_results_per_page, start_index=start_index)
             if not results and start_index == 0:
                 self.console.print("[bold yellow]No books found matching your query.[/bold yellow]")
                 break

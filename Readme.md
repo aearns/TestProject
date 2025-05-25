@@ -1,4 +1,4 @@
-# Mini Book Search CLI Tool
+# Test Project for a Mini Book Search CLI Tool
 
 A command-line interface tool that allows users to search for books using the Google Books API, view results, and save their favorite books to a local JSON file.
 
@@ -8,7 +8,7 @@ A command-line interface tool that allows users to search for books using the Go
 
 -   **Search Books:** Search for books by title or author using the Google Books API.
 -   **Display Results:** Shows the top 5 relevant results including Title, Author(s), and Published Date.
--   **Save Favorites:** Select and save desired books to a local `saved_books.json` file. Saved books include Title, Author(s), Published Date, Description, and ISBN(s).
+-   **Save Favorites:** Select and save desired books to a local `saved_books.json` file. Saved books include Title, Author(s), and Published Date.
 -   **View Saved Books:** List all books previously saved by the user.
 -   **Pagination :** Supports viewing additional search results beyond the initial 5.
 -   **Rich TUI :** Utilizes the `rich` library for an enhanced and colorful terminal UI.
@@ -21,7 +21,7 @@ A command-line interface tool that allows users to search for books using the Go
     ```bash
     python -m venv venv
     # On Windows:
-    .\venv\Scripts\activate
+    Source venv\Scripts\activate
     # On macOS/Linux:
     source venv/bin/activate
     ```
@@ -30,7 +30,7 @@ A command-line interface tool that allows users to search for books using the Go
     ```bash
     pip install -r requirements.txt
     ```
-    
+
 ---
 
 ## How to Run the Tool
