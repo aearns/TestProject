@@ -22,8 +22,14 @@ class Book:
             published_date=data.get("published_date")
         )
 
-    def __str__(self):
+    def __repr__(self):
         return f"Book(title={self.title}, authors={self.authors}, published_date={self.published_date})"
-        
+
+    def __eq__(self, other):
+        if not isinstance(other, Book):
+            return NotImplemented
+        return (self.title == other.title and
+                self.authors == other.authors and 
+                self.published_date == other.published_date)
         
 
