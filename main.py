@@ -1,4 +1,4 @@
-from cli import CLI
+from commandLine import CLI
 
 def main():
     """

@@ -1,6 +1,6 @@
 import json
 import os
-from books import Book
+from books import BookDir
 
 class SaveLoad:
     """
@@ -19,7 +19,7 @@ class SaveLoad:
         try:
             with open(self.file_path, 'r', encoding='utf+8') as file:
                 data = json.load(file)
-                return [Book.from_dict(item) for item in data]
+                return [BookDir.from_dict(item) for item in data]
         except json.JSONDecodeError:
             print (f"Warning: File failed to load")
             return []
@@ -29,11 +29,11 @@ class SaveLoad:
 
     def save_book(self, book):
         """
-        Saves a single Book object to the local file.
+        Saves a single BookDir object to the local file.
         Add new book to existing ones.
 
         Args:
-            book (Book): The Book object to save.
+            book (BookDir): The Book object to save.
         """
         saved_books = self.view_books()     #confirm if book exists
       

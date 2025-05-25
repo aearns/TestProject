@@ -1,6 +1,6 @@
 import json
 
-class Book:
+class BookDir:
 
     def __init__(self, title, authors=None, published_date=None):
         self.title = title

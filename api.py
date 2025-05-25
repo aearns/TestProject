@@ -1,5 +1,5 @@
 import requests
-from books import Book
+from books import BookDir
 
 class BooksAPI:
     """
@@ -20,7 +20,7 @@ class BooksAPI:
             start_index (int, optional): _description_. Defaults to 0.
 
         Returns:
-            list[Book]
+            list[BookDir]
         """
         params = {
             "q": query,
@@ -44,7 +44,7 @@ class BooksAPI:
                     authors = volume_info.get
                     published_date = volume_info.get("publishedDate", "N/A")
 
-                    book = Book(
+                    book = BookDir(
                         title = title,
                         authors = authors,
                         published_date = published_date
