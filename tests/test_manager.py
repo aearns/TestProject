@@ -1,104 +1,107 @@
 import pytest
-from unittest.mock import MagicMock
-import requests
+import os
+import json
 
-# Assuming your classes are in the top-level directory, adjust import if needed
-# If you run pytest from the root, 'from google_books_api import GoogleBooksAPI' works.
-# For direct execution within tests/, you might need sys.path adjustments or a package structure.
-from google_books_api import GoogleBooksAPI
-from book import Book
+# Assuming your classes are in the top-level directory
+from manager import SaveLoad
+from books import BookDir
 
 @pytest.fixture
-def mock_requests_get(mocker):
-    """Fixture to mock requests.get for API calls."""
-    return mocker.patch('requests.get')
+def temp_json_file(tmp_path):
+    """Fixture to create a temporary JSON file for testing."""
+    file_path = tmp_path / "test_saved_books.json"
+    yield str(file_path)
+    # Clean up is handled automatically by tmp_path fixture
 
-def test_search_books_success(mock_requests_get):
-    """Test successful API response with multiple books."""
-    mock_response = MagicMock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = {
-        "items": [
-            {
-                "volumeInfo": {
-                    "title": "Python Programming",
-                    "authors": ["John Doe", "Jane Smith"],
-                    "publishedDate": "2023-01-01",
-                    "description": "A comprehensive guide to Python.",
-                    "industryIdentifiers": [
-                        {"type": "ISBN_10", "identifier": "1234567890"},
-                        {"type": "ISBN_13", "identifier": "9781234567890"}
-                    ]
-                }
-            },
-            {
-                "volumeInfo": {
-                    "title": "Data Science Basics",
-                    "authors": ["Alice Brown"],
-                    "publishedDate": "2022-05-15",
-                    "description": "Introduction to data science concepts.",
-                    "industryIdentifiers": [] # Test empty ISBNs
-                }
-            }
-        ]
-    }
-    mock_requests_get.return_value = mock_response
+@pytest.fixture
+def sample_books():
+    """Fixture providing sample Book objects."""
+    book1 = BookDir(
+        title="Sample Book 1",
+        authors=["Author A"],
+        published_date="2020-01-01",
+        description="Description for book 1.",
+        isbns=[{"type": "ISBN_10", "identifier": "1234567890"}]
+    )
+    book2 = BookDir(
+        title="Sample Book 2",
+        authors=["Author B", "Author C"],
+        published_date="2021-02-02",
+        description="Description for book 2 with more details.",
+        isbns=[]
+    )
+    return [book1, book2]
 
-    api = GoogleBooksAPI()
-    books = api.search_books("Python")
+def test_load_books_empty_file(temp_json_file):
+    """Test loading books from a non-existent or empty file."""
+    manager = SaveLoad(temp_json_file)
+    books = manager.load_books()
+    assert len(books) == 0
+    assert os.path.exists(temp_json_file) # Should create an empty file if it doesn't exist upon load attempt
 
-    assert len(books) == 2
-    assert books[0].title == "Python Programming"
-    assert "John Doe" in books[0].authors
-    assert books[0].published_date == "2023-01-01"
-    assert "comprehensive" in books[0].description
-    assert len(books[0].isbns) == 2
-    assert books[1].title == "Data Science Basics"
-    assert "Alice Brown" in books[1].authors
-    assert len(books[1].isbns) == 0
+def test_save_single_book(temp_json_file, sample_books):
+    """Test saving a single book."""
+    manager = SaveLoad(temp_json_file)
+    book1 = sample_books[0]
+    manager.save_book(book1)
 
-def test_search_books_no_results(mock_requests_get):
-    """Test API response with no items found."""
-    mock_response = MagicMock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = {"items": []} # No items key or empty list
-    mock_requests_get.return_value = mock_response
+    loaded_data = []
+    with open(temp_json_file, 'r', encoding='utf-8') as f:
+        loaded_data = json.load(f)
 
-    api = GoogleBooksAPI()
-    books = api.search_books("NonExistentBook")
+    assert len(loaded_data) == 1
+    assert loaded_data[0]["title"] == book1.title
+    assert loaded_data[0]["authors"] == book1.authors
 
+def test_save_multiple_books_and_load(temp_json_file, sample_books):
+    """Test saving multiple books sequentially and then loading them."""
+    manager = SaveLoad(temp_json_file)
+    book1, book2 = sample_books
+
+    manager.save_book(book1)
+    manager.save_book(book2)
+
+    loaded_books = manager.load_books()
+
+    assert len(loaded_books) == 2
+    assert loaded_books[0] == book1
+    assert loaded_books[1] == book2
+
+def test_load_books_malformed_json(temp_json_file):
+    """Test handling of malformed JSON in the saved file."""
+    with open(temp_json_file, 'w', encoding='utf-8') as f:
+        f.write("this is not valid json {")
+
+    manager = SaveLoad(temp_json_file)
+    books = manager.load_books()
     assert len(books) == 0
 
-def test_search_books_api_error(mock_requests_get):
-    """Test API response for HTTP errors (e.g., 404, 500)."""
-    mock_response = MagicMock()
-    mock_response.status_code = 404
-    mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("404 Not Found")
-    mock_requests_get.return_value = mock_response
+def test_save_duplicate_book(temp_json_file, sample_books, capsys):
+    """Test that duplicate books are not saved."""
+    manager = SaveLoad(temp_json_file)
+    book1 = sample_books[0]
 
-    api = GoogleBooksAPI()
-    books = api.search_books("ErrorTest")
+    manager.save_book(book1)
+    manager.save_book(book1) # Try to save again
 
-    assert len(books) == 0
-    # You might want to capture stderr to assert on the printed error message
+    loaded_books = manager.load_books()
+    assert len(loaded_books) == 1 # Should only have one instance of the book
 
-def test_search_books_network_error(mocker):
-    """Test for network connection errors."""
-    mocker.patch('requests.get', side_effect=requests.exceptions.ConnectionError("Connection Refused"))
+    captured = capsys.readouterr()
+    assert f"'{book1.title}' by {', '.join(book1.authors)} is already saved." in captured.out
 
-    api = GoogleBooksAPI()
-    books = api.search_books("NetworkFail")
+def test_book_equality(sample_books):
+    """Test the __eq__ method of the Book class."""
+    book1 = sample_books[0]
+    book1_copy = BookDir(
+        title="Sample Book 1",
+        authors=["Author A"],
+        published_date="2020-01-01",
+        description="Description for book 1.",
+        isbns=[{"type": "ISBN_10", "identifier": "1234567890"}]
+    )
+    book_different = sample_books[1]
 
-    assert len(books) == 0
-
-def test_search_books_malformed_json(mock_requests_get):
-    """Test handling of malformed JSON response."""
-    mock_response = MagicMock()
-    mock_response.status_code = 200
-    mock_response.json.side_effect = ValueError("Malformed JSON") # Simulate JSON decoding error
-    mock_requests_get.return_value = mock_response
-
-    api = GoogleBooksAPI()
-    books = api.search_books("BadJson")
-
-    assert len(books) == 0
+    assert book1 == book1_copy
+    assert book1 != book_different
+    assert book1 != "not a book"
