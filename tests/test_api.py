@@ -2,9 +2,6 @@ import pytest
 from unittest.mock import MagicMock
 import requests
 
-# Assuming your classes are in the top-level directory, adjust import if needed
-# If you run pytest from the root, 'from google_books_api import BooksAPI' works.
-# For direct execution within tests/, you might need sys.path adjustments or a package structure.
 from api import BooksAPI
 from books import BookDir
 
@@ -73,7 +70,7 @@ def test_search_books_api_error(mock_requests_get):
     books = api.search_books("ErrorTest")
 
     assert len(books) == 0
-    # You might want to capture stderr to assert on the printed error message
+
 
 def test_search_books_network_error(mocker):
     """Test for network connection errors."""
@@ -88,7 +85,7 @@ def test_search_books_malformed_json(mock_requests_get):
     """Test handling of malformed JSON response."""
     mock_response = MagicMock()
     mock_response.status_code = 200
-    mock_response.json.side_effect = ValueError("Malformed JSON") # Simulate JSON decoding error
+    mock_response.json.side_effect = ValueError("Malformed JSON") 
     mock_requests_get.return_value = mock_response
 
     api = BooksAPI()

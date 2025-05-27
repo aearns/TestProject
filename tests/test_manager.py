@@ -2,7 +2,7 @@ import pytest
 import os
 import json
 
-# Assuming your classes are in the top-level directory
+
 from manager import SaveLoad
 from books import BookDir
 
@@ -11,7 +11,7 @@ def temp_json_file(tmp_path):
     """Fixture to create a temporary JSON file for testing."""
     file_path = tmp_path / "test_saved_books.json"
     yield str(file_path)
-    # Clean up is handled automatically by tmp_path fixture
+    
 
 @pytest.fixture
 def sample_books():
