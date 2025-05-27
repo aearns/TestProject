@@ -37,16 +37,26 @@ class BooksAPI:
             response.raise_for_status()
             data = response.json()
 
-            print("\n--- Raw API Response (for debugging) ---")
-            print(json.dumps(data, indent=2))
-            print("----------------------------------------\n")
+            # print("\n--- Raw API Response (for debugging) ---")
+            # print(json.dumps(data, indent=2))
+            # print("----------------------------------------\n")
 
             books = []
             if "items" in data:
                 for item in data["items"]:
-                    volume_info = item.get("volumenInfo", {})
+                    volume_info = item.get("volumeInfo", {})
                     title = volume_info.get("title", "N/A")
-                    authors = volume_info.get("authors", "N/A")
+
+                    raw_authors = volume_info.get("authors")
+
+                    if isinstance(raw_authors, list):
+                        authors = raw_authors
+                    elif isinstance(raw_authors, str):
+                        authors = [raw_authors]
+
+                    else:
+                        authors = []
+
                     published_date = volume_info.get("publishedDate", "N/A")
 
                     book = BookDir(

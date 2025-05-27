@@ -10,13 +10,14 @@ from books import BookDir
 class CLI:
     """
     Command Line Interface for the Book Search Tool.
-    Handles user interaction, displays menus, and orchestrates actions.
+    Handles user interaction, displays menus, and other actions.
     """
     def __init__(self, api_key=None):
         self.console = Console()
         self.api = BooksAPI(api_key=api_key)
         self.manager = SaveLoad()
         self.current_search_results = []
+        self.top_results_per_page = 5
 
     def run(self):
         """
@@ -54,10 +55,10 @@ class CLI:
         self.console.print(f"[bold blue]Searching for '{query}'...[/bold blue]")
         self.current_search_results = []
         start_index = 0
-        max_results_per_page = 5
 
         while True:
-            results = self.api.search_book(query, top_results=max_results_per_page, start_index=start_index)
+            results = self.api.search_book(query, top_results=self.top_results_per_page, start_index=start_index)
+
             if not results and start_index == 0:
                 self.console.print("[bold yellow]No books found matching your query.[/bold yellow]")
                 break
@@ -75,7 +76,7 @@ class CLI:
             if action == 'b':
                 break
             elif action == 'n':
-                start_index += max_results_per_page
+                start_index += self.top_results_per_page
                 self.console.print("[bold blue]Fetching next page...[/bold blue]")
             else:
                 try:
@@ -97,7 +98,7 @@ class CLI:
         Helper method to display search results in a formatted table.
 
         Args:
-            books (list[Book]): List of Book objects to display.
+            books (list[BookDir]): List of Book objects to display.
             start_index (int): The starting index for numbering the results.
         """
         if not books:
@@ -110,8 +111,11 @@ class CLI:
         table.add_column("Published Date", style="blue", justify="center")
 
         for i, book in enumerate(books):
+            # Ensure we only display up to top_results_per_page
+            if i >= self.top_results_per_page:
+                break
             display_num = start_index + i + 1
-            authors = ", ".join(book.authors) if book.authors else "N/A"
+            authors = ", ".join(book.authors) if book.authors else "N"
             table.add_row(
                 str(display_num),
                 book.title,
@@ -134,22 +138,19 @@ class CLI:
         table.add_column("Title", style="green", no_wrap=False)
         table.add_column("Author(s)", style="magenta", no_wrap=False)
         table.add_column("Published Date", style="blue", justify="center")
-        table.add_column("Description", style="white", no_wrap=False)
-        table.add_column("ISBN(s)", style="yellow", no_wrap=False)
+     
 
         for i, book in enumerate(saved_books):
             authors = ", ".join(book.authors) if book.authors else "N/A"
-            isbns_str = "\n".join([f"{isbn['type']}: {isbn['identifier']}" for isbn in book.isbns]) if book.isbns else "N/A"
-            description_text = Text(book.description, style="white")
-            if len(description_text.plain) > 150: # Truncate long descriptions
-                description_text = Text(description_text.plain[:147] + "...", style="white")
+            # isbns_str = "\n".join([f"{isbn['type']}: {isbn['identifier']}" for isbn in book.isbns]) if book.isbns else "N/A"
+            # description_text = Text(book.description, style="white")
+            # if len(description_text.plain) > 150: # Truncate long descriptions
+            #     description_text = Text(description_text.plain[:147] + "...", style="white")
 
             table.add_row(
                 str(i + 1),
                 book.title,
                 authors,
                 book.published_date,
-                description_text,
-                isbns_str
             )
         self.console.print(table)

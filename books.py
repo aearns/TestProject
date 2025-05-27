@@ -26,7 +26,7 @@ class BookDir:
         return f"Book(title={self.title}, authors={self.authors}, published_date={self.published_date})"
 
     def __eq__(self, other):
-        if not isinstance(other, Book):
+        if not isinstance(other, BookDir):
             return NotImplemented
         return (self.title == other.title and
                 self.authors == other.authors and 

@@ -7,7 +7,7 @@ class SaveLoad:
     Save and load books from file
     """
 
-    def __ini__(self, file_path='saved_books.json'):
+    def __init__(self, file_path='saved_books.json'):
         self.file_path = file_path
 
     def view_book(self):
@@ -35,7 +35,7 @@ class SaveLoad:
         Args:
             book (BookDir): The Book object to save.
         """
-        saved_books = self.view_books()     #confirm if book exists
+        saved_books = self.view_book()     #confirm if book exists
       
         if any(b.title == book.title and b.authors == book.authors for b in saved_books):
             print(f"'{book.title}' by {', '.join(book.authors)} is already saved.")
